@@ -1,3 +1,5 @@
+process.env.UV_THREADPOOL_SIZE = 1;
+
 const cluster = require('cluster');
 
 // Is the file being executed in 'Master' mode?
@@ -10,18 +12,13 @@ if (cluster.isMaster) {
 } else {
 	// This is the child mode, It is going to act like a server nothing else.
 	const express = require('express');
+	const crypto = require('crypto');
 	const app = express();
 
-	// Function to keep CPU super busy for the duration provided
-	// Blocking the event loop here
-	function doWork(duration) {
-		let start = Date.now();
-		while (Date.now() - start < duration) {}
-	}
-
 	app.get('/', (req, res) => {
-		doWork(5000);
-		res.send('Hi There');
+		crypto.pbkdf2('a', 'b', 100000, 512, 'sha512', () => {
+			res.send('Hi There');
+		});
 	});
 
 	app.get('/fast', (req, res) => {
