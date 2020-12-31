@@ -1,31 +1,30 @@
-process.env.UV_THREADPOOL_SIZE = 1;
+const express = require('express');
+const crypto = require('crypto');
+const app = express();
+const Worker = require('web-worker');
 
-const cluster = require('cluster');
+app.get('/', (req, res) => {
+	const worker = new Worker('./workerScript.js');
 
-// Is the file being executed in 'Master' mode?
-if (cluster.isMaster) {
-	// Cause index.js to be executed again but in child mode
-	cluster.fork();
-	cluster.fork();
-	cluster.fork();
-	cluster.fork();
-} else {
-	// This is the child mode, It is going to act like a server nothing else.
-	const express = require('express');
-	const crypto = require('crypto');
-	const app = express();
+	worker.onmessage = (message) => {
+		console.log(message.data);
+		res.send(String(message.data));
+	};
 
-	app.get('/', (req, res) => {
-		crypto.pbkdf2('a', 'b', 100000, 512, 'sha512', () => {
-			res.send('Hi There');
-		});
-	});
+	worker.postMessage();
+	// crypto.pbkdf2('a', 'b', 100000, 512, 'sha512', () => {
+	// 	res.send('Hi There');
+	// });
+});
 
-	app.get('/fast', (req, res) => {
-		res.send('Fast route');
-	});
+app.get('/fast', (req, res) => {
+    let counter = 0;
+	// while (counter < 1e9) {
+	// 	counter++;
+	// }
+	res.send('Fast route');
+});
 
-	app.listen(3100, () => {
-		console.log(`Port running on 3100`);
-	});
-}
+app.listen(3100, () => {
+	console.log(`Port running on 3100`);
+});
