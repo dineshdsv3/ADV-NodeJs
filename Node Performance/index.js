@@ -4,7 +4,7 @@ const app = express();
 const Worker = require('web-worker');
 
 app.get('/', (req, res) => {
-	const worker = new Worker('./workerScript.js');
+	const worker = new Worker('workerScript.js');
 
 	worker.onmessage = (message) => {
 		console.log(message.data);
